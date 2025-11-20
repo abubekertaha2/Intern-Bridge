@@ -1,6 +1,5 @@
-// app/api/register_company/route.js
-import { registerCompany, checkCompanyEmailExists } from '../../lib/companyModel';
-import { uploadDir, cleanupFile } from '../../lib/upload'; 
+import { registerCompany, checkCompanyEmailExists } from '@/lib/companyModel';
+import { uploadDir, cleanupFile } from '@/lib/upload'; 
 import fs from 'fs/promises';
 import path from 'path';
 import bcrypt from 'bcrypt';
@@ -32,13 +31,13 @@ async function saveFile(file) {
 
 
 export async function POST(request) { 
-    let uploadedFileName = null; // Store for cleanup
+    let uploadedFileName = null; 
 
     try {
         // 1. Read the native FormData
         const formData = await request.formData();
         
-        // 2. Extract all fields (must match frontend form names exactly)
+        // 2. Extract all fields 
         const companyName = formData.get('companyName');
         const industry = formData.get('industry');
         const companySize = formData.get('companySize');
@@ -50,8 +49,6 @@ export async function POST(request) {
         const phone = formData.get('phone');
         const password = formData.get('password');
         
-        // Frontend input name for the file is currently missing in your JSX,
-        // but based on the validation logic we'll assume the input's name is 'companyLogo'
         const companyLogoFile = formData.get('companyLogo'); 
 
         // 3. Validation: Check for required fields
@@ -61,14 +58,14 @@ export async function POST(request) {
             return NextResponse.json({ message: "Por favor, completa todos los campos requeridos." }, { status: 400 });
         }
         
-        // 4. File Processing and Validation (The logo is mandatory per your frontend validation)
+        // 4. File Processing and Validation
         let companyLogoPath = null;
         if (companyLogoFile instanceof File && companyLogoFile.size > 0) {
             const fileResult = await saveFile(companyLogoFile);
             uploadedFileName = fileResult.fileName; 
             companyLogoPath = fileResult.filePath;
         } else {
-            // Handle the required logo validation (matching your frontend logic)
+            // Handle the required logo validation 
             return NextResponse.json({ message: "El logo de la empresa es obligatorio." }, { status: 400 });
         }
 
@@ -76,7 +73,7 @@ export async function POST(request) {
         // 5. Check Email Existence
         const exists = await checkCompanyEmailExists(email);
         if (exists) {
-            cleanupFile(uploadedFileName); // Clean up uploaded file
+            cleanupFile(uploadedFileName);
             return NextResponse.json({ message: "El correo electrónico ya está registrado." }, { status: 409 });
         }
 
@@ -84,7 +81,7 @@ export async function POST(request) {
         const saltRounds = 10;
         const passwordHash = await bcrypt.hash(password, saltRounds);
         
-        // 7. Prepare Data for DB (Order must match companyModel.js)
+        // 7. Prepare Data for DB 
         const data = [
             companyName, industry, companySize, description, website || null, contactName, 
             contactPosition, email, phone, passwordHash, companyLogoPath

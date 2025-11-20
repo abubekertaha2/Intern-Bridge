@@ -274,10 +274,10 @@ export default function ProfilePage() {
             <input
               name="gpa"
               type="number"
-              step="1"
+              step="0.01"
               min="0"
-              max="99999999"
-              placeholder="342567"
+              max="4"
+              placeholder="3.75"
               value={formData.gpa}
               onChange={handleChange}
               className={`profile-input w-full p-3 border rounded-lg focus:outline-none ${

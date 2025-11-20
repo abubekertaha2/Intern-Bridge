@@ -1,28 +1,52 @@
 import { NextResponse } from 'next/server';
-
-// --- HARDCODED DUMMY USERS (REPLACES DATABASE) ---
-const DUMMY_USERS = [
-    { email: 'usuariodeprueba@mail.com', password: 'test1234', role: 'student', name: 'Usuario de Prueba' },
-    { email: 'intec@mail.com', password: 'intec1234', role: 'university', name: 'INTEC' },
-];
+import bcrypt from 'bcryptjs';
+import db from '@/lib/db';
 
 export async function POST(request) {
-    const { email, password } = await request.json();
+  try {
+    const { email, password, role } = await request.json();
 
-    if (!email || !password) {
-        return NextResponse.json({ message: 'Email y contraseña son requeridos.' }, { status: 400 });
+    if (!email || !password || !role) {
+      return NextResponse.json(
+        { message: 'Email, contraseña y rol son requeridos.' },
+        { status: 400 }
+      );
     }
 
-    const user = DUMMY_USERS.find(
-        u => u.email === email && u.password === password
+    const table = role === 'student' ? 'students' : 'companies';
+
+    const [rows] = await db.query(
+      `SELECT * FROM ${table} WHERE email = ?`,
+      [email]
     );
 
-    if (!user) {
-        return NextResponse.json({ message: 'Credenciales inválidas. Por favor, intente de nuevo.' }, { status: 401 });
+    if (rows.length === 0) {
+      return NextResponse.json({ exists: false }, { status: 200 });
     }
 
+    const user = rows[0];
+
+    // Compare hashed password
+    const passwordMatch = bcrypt.compareSync(password, user.password_hash);
+
+    if (!passwordMatch) {
+      return NextResponse.json(
+        { message: 'Contraseña incorrecta.' },
+        { status: 401 }
+      );
+    }
+
+    // Return success with role and user id
     return NextResponse.json({
-        name: user.name,
-        role: user.role, 
+      exists: true,
+      role,
+      id: user.id,
     });
+  } catch (error) {
+    console.error('Login error:', error);
+    return NextResponse.json(
+      { message: 'Error interno del servidor.' },
+      { status: 500 }
+    );
+  }
 }

@@ -16,7 +16,7 @@ export default function Logo() {
       </div>
       <div className='text-center'>
         <span className="text-xl font-bold text-white">PasantesRD</span>
-        <p className='text-gray-400'>Conectando talento con oportunidades</p>
+        <p className='text-gray-400 whitespace-nowrap'>Conectando talento con oportunidades</p>
       </div>
     </div>
   );
